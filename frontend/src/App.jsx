@@ -3,6 +3,10 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Wallet, FileText, DollarSign, Briefcase, Car, Home, Settings, Sparkles, CheckCircle, ExternalLink, Download } from 'lucide-react'
 import { ethers } from 'ethers'
 import { P2PLoanForm, BusinessPartnershipForm, VehicleSaleForm, PropertySaleForm, ServiceAgreementForm, CustomContractForm } from './components/TemplateForms'
+import { PathSelection } from './components/PathSelection'
+import { DecisionTree } from './components/DecisionTree'
+import { AIAssistant } from './components/AIAssistant'
+import { FileUpload } from './components/FileUpload'
 import { deploySmartContract } from './utils/deployment'
 import './App.css'
 
@@ -65,6 +69,7 @@ const CONTRACT_TEMPLATES = [
 
 function App() {
   const [step, setStep] = useState('landing')
+  const [selectedPath, setSelectedPath] = useState(null)
   const [selectedTemplate, setSelectedTemplate] = useState(null)
   const [account, setAccount] = useState(null)
   const [provider, setProvider] = useState(null)
@@ -83,11 +88,42 @@ function App() {
       
       setProvider(web3Provider)
       setAccount(accounts[0])
-      setStep('template')
+      setStep('path-selection')
     } catch (error) {
       console.error('Error connecting wallet:', error)
       alert('Failed to connect wallet. Please try again.')
     }
+  }
+
+  const handlePathSelection = (pathType) => {
+    setSelectedPath(pathType)
+    if (pathType === 'ai') {
+      setStep('decision-tree')
+    } else if (pathType === 'templates') {
+      setStep('template')
+    }
+  }
+
+  const handleDecisionPath = (action) => {
+    setSelectedPath(action)
+    if (action === 'upload') {
+      setStep('file-upload')
+    } else if (action === 'refine' || action === 'scratch') {
+      setStep('ai-assistant')
+    } else if (action === 'templates') {
+      setStep('template')
+    }
+  }
+
+  const handleAIComplete = (data) => {
+    setContractData(data)
+    // Route to appropriate template or custom form
+    setStep('form')
+  }
+
+  const handleFileUploadComplete = (extractedData) => {
+    setContractData(extractedData)
+    setStep('ai-assistant')
   }
 
   const selectTemplate = (template) => {
@@ -100,30 +136,49 @@ function App() {
     setStep('deploying')
 
     try {
-      const result = await deploySmartContract(formData, provider)
-
-      if (result.success) {
-        setDeploymentResult(result)
-        setStep('success')
-      } else {
-        throw new Error(result.error)
-      }
+      const result = await deploySmartContract(provider, account, formData, selectedTemplate.id)
+      setDeploymentResult(result)
+      setStep('success')
     } catch (error) {
-      console.error('Deployment failed:', error)
-      alert(`Deployment failed: ${error.message}`)
+      console.error('Deployment error:', error)
+      alert('Failed to deploy contract. Please try again.')
       setStep('form')
     }
   }
 
-  const createNewContract = () => {
-    setStep('template')
-    setSelectedTemplate(null)
-    setDeploymentResult(null)
-    setContractData(null)
+  const downloadPDF = () => {
+    console.log('Download PDF functionality would be implemented here')
+    alert('PDF download feature coming soon!')
   }
 
-  const downloadPDF = () => {
-    alert('PDF generation coming soon! For now, you can view your contract data on IPFS.')
+  const createNewContract = () => {
+    setStep('path-selection')
+    setSelectedTemplate(null)
+    setSelectedPath(null)
+    setContractData(null)
+    setDeploymentResult(null)
+  }
+
+  const goBack = () => {
+    if (step === 'path-selection') {
+      setStep('landing')
+      setAccount(null)
+      setProvider(null)
+    } else if (step === 'decision-tree') {
+      setStep('path-selection')
+    } else if (step === 'template' || step === 'ai-assistant' || step === 'file-upload') {
+      if (selectedPath === 'templates') {
+        setStep('path-selection')
+      } else {
+        setStep('decision-tree')
+      }
+    } else if (step === 'form') {
+      if (selectedPath === 'templates') {
+        setStep('template')
+      } else {
+        setStep('ai-assistant')
+      }
+    }
   }
 
   return (
@@ -182,53 +237,93 @@ function App() {
               </motion.button>
 
               <motion.div
-                initial={{ y: 30, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="hero-stats"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.7 }}
+                className="features-grid"
               >
-                <div className="stat">
-                  <span className="stat-value">$2.5M+</span>
-                  <span className="stat-label">Secured</span>
+                <div className="feature">
+                  <CheckCircle size={20} />
+                  <span>Instant Deployment</span>
                 </div>
-                <div className="stat-divider" />
-                <div className="stat">
-                  <span className="stat-value">1,200+</span>
-                  <span className="stat-label">Contracts</span>
+                <div className="feature">
+                  <CheckCircle size={20} />
+                  <span>IPFS Storage</span>
                 </div>
-                <div className="stat-divider" />
-                <div className="stat">
-                  <span className="stat-value">&lt; 2min</span>
-                  <span className="stat-label">Average Time</span>
+                <div className="feature">
+                  <CheckCircle size={20} />
+                  <span>Self-Executing</span>
                 </div>
               </motion.div>
             </div>
+          </motion.div>
+        )}
 
-            <div className="hero-decoration">
-              <div className="floating-card card-1" />
-              <div className="floating-card card-2" />
-              <div className="floating-card card-3" />
-            </div>
+        {step === 'path-selection' && (
+          <motion.div
+            key="path-selection"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <PathSelection onSelect={handlePathSelection} onBack={goBack} />
+          </motion.div>
+        )}
+
+        {step === 'decision-tree' && (
+          <motion.div
+            key="decision-tree"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <DecisionTree onPathSelect={handleDecisionPath} onBack={goBack} />
+          </motion.div>
+        )}
+
+        {step === 'ai-assistant' && (
+          <motion.div
+            key="ai-assistant"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <AIAssistant 
+              mode={selectedPath === 'upload' ? 'refine' : 'scratch'}
+              onComplete={handleAIComplete}
+              onBack={goBack}
+            />
+          </motion.div>
+        )}
+
+        {step === 'file-upload' && (
+          <motion.div
+            key="file-upload"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <FileUpload 
+              onComplete={handleFileUploadComplete}
+              onBack={goBack}
+            />
           </motion.div>
         )}
 
         {step === 'template' && (
           <motion.div
             key="template"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="template-screen"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="template-selection"
           >
             <div className="template-header">
-              <h2>Choose Your Agreement Type</h2>
-              <p>Select a template to get started quickly</p>
-              {account && (
-                <div className="wallet-badge">
-                  <Wallet size={16} />
-                  {account.slice(0, 6)}...{account.slice(-4)}
-                </div>
-              )}
+              <button onClick={goBack} className="back-button">
+                ← Back
+              </button>
+              <h2>Choose Your Contract Template</h2>
+              <p>Select a template that matches your needs</p>
             </div>
 
             <div className="template-grid">
@@ -240,17 +335,15 @@ function App() {
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -8, scale: 1.02 }}
+                    whileHover={{ y: -8 }}
                     className="template-card"
                     onClick={() => selectTemplate(template)}
-                    style={{ '--accent-color': template.accentColor }}
                   >
                     <div className={`template-icon bg-gradient-to-br ${template.color}`}>
                       <Icon size={32} />
                     </div>
                     <h3>{template.title}</h3>
                     <p>{template.description}</p>
-                    <div className="template-arrow">→</div>
                   </motion.div>
                 )
               })}
@@ -261,31 +354,34 @@ function App() {
         {step === 'form' && selectedTemplate && (
           <motion.div
             key="form"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             className="form-screen"
           >
-            <div className="form-header">
-              <button onClick={() => setStep('template')} className="back-button">
-                ← Back
-              </button>
-              <h2>{selectedTemplate.title}</h2>
-              {account && (
-                <div className="wallet-badge">
-                  <Wallet size={16} />
-                  {account.slice(0, 6)}...{account.slice(-4)}
+            <div className="form-container">
+              <div className="form-header">
+                <button onClick={goBack} className="back-button">
+                  ← Back to Templates
+                </button>
+                <div className="selected-template-badge">
+                  {(() => {
+                    const Icon = selectedTemplate.icon
+                    return <Icon size={20} />
+                  })()}
+                  <span>{selectedTemplate.title}</span>
                 </div>
-              )}
-            </div>
+              </div>
 
-            <div className="form-content">
-              {selectedTemplate.component && (
-                <selectedTemplate.component
-                  onSubmit={handleFormSubmit}
-                  onBack={() => setStep('template')}
-                />
-              )}
+              {(() => {
+                const FormComponent = selectedTemplate.component
+                return (
+                  <FormComponent
+                    onSubmit={handleFormSubmit}
+                    initialData={contractData}
+                  />
+                )
+              })()}
             </div>
           </motion.div>
         )}
