@@ -38,15 +38,20 @@ export function AIAssistant({ mode, onComplete, onBack }) {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
       recognitionRef.current = new SpeechRecognition()
-      recognitionRef.current.continuous = false
-      recognitionRef.current.interimResults = false
+      recognitionRef.current.continuous = true
+      recognitionRef.current.maxAlternatives = 1
+      recognitionRef.current.interimResults = true
       recognitionRef.current.lang = 'en-US'
 
       recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript
+        const lastResultIndex = event.results.length - 1
+        const transcript = event.results[lastResultIndex][0].transcript
         console.log("Voice transcript received:", transcript)
-        setInputText(prev => (prev ? prev + ' ' : '') + transcript.trim())
-        setIsListening(false)
+        
+        if (event.results[lastResultIndex].isFinal) {
+          setInputText(prev => (prev ? prev + ' ' : '') + transcript.trim())
+          console.log("Final transcript:", transcript)
+        }
       }
 
       recognitionRef.current.onerror = (event) => {
@@ -64,7 +69,17 @@ export function AIAssistant({ mode, onComplete, onBack }) {
       }
 
       recognitionRef.current.onend = () => {
-        setIsListening(false)
+        if (isListening) {
+          // Restart if still in listening mode
+          try {
+            recognitionRef.current.start()
+          } catch (error) {
+            console.log('Recognition restart failed:', error)
+            setIsListening(false)
+          }
+        } else {
+          setIsListening(false)
+        }
       }
     }
 
@@ -93,7 +108,6 @@ export function AIAssistant({ mode, onComplete, onBack }) {
     setIsProcessing(true)
 
     try {
-      // Simulate AI response
       await simulateAIResponse(inputText)
     } catch (error) {
       console.error('AI Error:', error)
@@ -108,23 +122,29 @@ export function AIAssistant({ mode, onComplete, onBack }) {
   }
 
   const simulateAIResponse = async (userInput) => {
-    // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     const lowerInput = userInput.toLowerCase()
     let response = ''
+    const messageCount = messages.length
 
-    // Simple response logic based on keywords
-    if (lowerInput.includes('loan') || lowerInput.includes('borrow') || lowerInput.includes('lend')) {
-      response = "Great! A loan agreement. Let me gather some details:\n\n1. Who is the lender? (Please provide their Ethereum address)\n2. Who is the borrower? (Ethereum address)\n3. What is the loan amount in MATIC?\n4. What is the interest rate?\n5. When is the repayment deadline?\n\nPlease provide these details and I'll help structure your smart contract."
-    } else if (lowerInput.includes('service') || lowerInput.includes('work') || lowerInput.includes('freelance')) {
-      response = "Perfect! A service agreement. I'll need:\n\n1. Service provider's Ethereum address\n2. Client's Ethereum address\n3. Description of services\n4. Payment amount in MATIC\n5. Project deadline\n6. Milestones (if any)\n\nShare these details and we'll create your contract."
-    } else if (lowerInput.includes('sale') || lowerInput.includes('buy') || lowerInput.includes('sell')) {
-      response = "Understood! A sale agreement. Please tell me:\n\n1. What's being sold?\n2. Seller's Ethereum address\n3. Buyer's Ethereum address\n4. Sale price in MATIC\n5. Any special conditions?\n\nProvide these details and I'll help create the contract."
-    } else if (messages.length <= 2) {
-      response = "I see. To help you better, could you specify what type of contract you need? For example:\n\n• Loan agreement\n• Service contract\n• Sale agreement\n• Partnership agreement\n• Rental agreement\n\nOr describe your specific situation and I'll guide you."
+    if (messageCount <= 2 && (lowerInput.includes('loan') || lowerInput.includes('borrow') || lowerInput.includes('lend'))) {
+      response = "Great! A loan agreement. Let me gather some details:\n\n1. Who is the lender? (Ethereum address)\n2. Who is the borrower? (Ethereum address)\n3. Loan amount in MATIC\n4. Interest rate\n5. Repayment deadline\n\nPlease provide these details."
+    } else if (messageCount <= 2 && (lowerInput.includes('service') || lowerInput.includes('work') || lowerInput.includes('freelance'))) {
+      response = "Perfect! A service agreement. I'll need:\n\n1. Service provider's Ethereum address\n2. Client's Ethereum address\n3. Description of services\n4. Payment amount in MATIC\n5. Project deadline\n\nShare these details to continue."
+    } else if (messageCount <= 2 && (lowerInput.includes('sale') || lowerInput.includes('buy') || lowerInput.includes('sell'))) {
+      response = "Understood! A sale agreement. Please tell me:\n\n1. What's being sold?\n2. Seller's Ethereum address\n3. Buyer's Ethereum address\n4. Sale price in MATIC\n\nProvide these details please."
+    } else if (messageCount <= 2) {
+      response = "I see. What type of contract do you need? For example:\n\n• Loan agreement\n• Service contract\n• Sale agreement\n• Partnership agreement\n\nOr describe your situation."
+    } else if (messageCount >= 4) {
+      response = "Thank you for providing those details! I've gathered the key information for your smart contract.\n\nWhen you're ready, click the 'Generate Smart Contract' button below to select a template and complete your contract setup."
+      
+      setContractData({
+        conversationSummary: messages.map(m => m.content).join('\n'),
+        timestamp: new Date()
+      })
     } else {
-      response = "Thank you for that information. Could you provide more specific details about the parties involved (Ethereum addresses) and the key terms (amounts, dates, conditions)? The more details you provide, the better I can help structure your smart contract."
+      response = "Got it! Please continue providing the details I asked for above, or let me know if you need clarification on anything."
     }
 
     setMessages(prev => [...prev, {
@@ -162,8 +182,6 @@ export function AIAssistant({ mode, onComplete, onBack }) {
   }
 
   const handleGenerateContract = () => {
-    // Extract contract data from conversation
-    // This is a simplified version - in production, use proper NLP
     onComplete(contractData)
   }
 

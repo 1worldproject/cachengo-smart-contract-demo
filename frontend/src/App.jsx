@@ -118,7 +118,7 @@ function App() {
   const handleAIComplete = (data) => {
     setContractData(data)
     // Route to appropriate template or custom form
-    setStep('form')
+    setStep('template')
   }
 
   const handleFileUploadComplete = (extractedData) => {
@@ -128,7 +128,7 @@ function App() {
 
   const selectTemplate = (template) => {
     setSelectedTemplate(template)
-    setStep('form')
+    setStep('template')
   }
 
   const handleFormSubmit = async (formData) => {
@@ -142,7 +142,7 @@ function App() {
     } catch (error) {
       console.error('Deployment error:', error)
       alert('Failed to deploy contract. Please try again.')
-      setStep('form')
+      setStep('template')
     }
   }
 
