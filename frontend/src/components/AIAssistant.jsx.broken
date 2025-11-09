@@ -47,11 +47,10 @@ export function AIAssistant({ mode, onComplete, onBack }) {
         const lastResultIndex = event.results.length - 1
         const transcript = event.results[lastResultIndex][0].transcript
         console.log("Voice transcript received:", transcript)
-        console.log("isFinal:", event.results[lastResultIndex].isFinal, "Length:", event.results.length)
         
         if (event.results[lastResultIndex].isFinal) {
-          setInputText(prev => prev ? prev + ' ' + transcript.trim() : transcript.trim())
-          console.log("Final transcript set:", transcript)
+          setInputText(prev => (prev ? prev + ' ' : '') + transcript.trim())
+          console.log("Final transcript:", transcript)
         }
       }
 
@@ -109,6 +108,7 @@ export function AIAssistant({ mode, onComplete, onBack }) {
     setIsProcessing(true)
 
     try {
+      // Simulate AI response
       await simulateAIResponse(inputText)
     } catch (error) {
       console.error('AI Error:', error)
@@ -123,12 +123,16 @@ export function AIAssistant({ mode, onComplete, onBack }) {
   }
 
   const simulateAIResponse = async (userInput) => {
+    // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 1500))
 
     const lowerInput = userInput.toLowerCase()
     let response = ''
+
+    // Track conversation progress
     const messageCount = messages.length
 
+    // Simple response logic based on keywords and conversation stage
     if (messageCount <= 2 && (lowerInput.includes('loan') || lowerInput.includes('borrow') || lowerInput.includes('lend'))) {
       response = "Great! A loan agreement. Let me gather some details:\n\n1. Who is the lender? (Ethereum address)\n2. Who is the borrower? (Ethereum address)\n3. Loan amount in MATIC\n4. Interest rate\n5. Repayment deadline\n\nPlease provide these details."
     } else if (messageCount <= 2 && (lowerInput.includes('service') || lowerInput.includes('work') || lowerInput.includes('freelance'))) {
@@ -138,13 +142,16 @@ export function AIAssistant({ mode, onComplete, onBack }) {
     } else if (messageCount <= 2) {
       response = "I see. What type of contract do you need? For example:\n\n• Loan agreement\n• Service contract\n• Sale agreement\n• Partnership agreement\n\nOr describe your situation."
     } else if (messageCount >= 4) {
+      // After several messages, acknowledge and suggest next steps
       response = "Thank you for providing those details! I've gathered the key information for your smart contract.\n\nWhen you're ready, click the 'Generate Smart Contract' button below to select a template and complete your contract setup."
       
+      // Store basic contract info
       setContractData({
         conversationSummary: messages.map(m => m.content).join('\n'),
         timestamp: new Date()
       })
     } else {
+      // Middle of conversation - acknowledge and prompt for more
       response = "Got it! Please continue providing the details I asked for above, or let me know if you need clarification on anything."
     }
 
@@ -154,71 +161,12 @@ export function AIAssistant({ mode, onComplete, onBack }) {
       timestamp: new Date()
     }])
   }
-
-  const toggleVoiceInput = () => {
-    if (!recognitionRef.current) {
-      alert('Voice recognition is not supported in your browser. Please use Chrome, Edge, or Safari.')
-      return
-    }
-
-    if (!isListening) {
-      try {
-        recognitionRef.current.start()
-        setIsListening(true)
-      } catch (error) {
-        console.error('Failed to start voice recognition:', error)
-        alert('Failed to start voice recognition. Please try again.')
-      }
     } else {
-      recognitionRef.current.stop()
-      setIsListening(false)
-    }
-  }
-
-  const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault()
-      handleSendMessage()
-    }
-  }
 
   const handleGenerateContract = () => {
-    // Extract contract type from conversation
-    const conversationText = messages.map(m => m.content.toLowerCase()).join(' ')
-    
-    // Determine contract type based on keywords (order matters - check most specific first)
-    let suggestedTemplateId = 'custom'
-    
-    // Check for service agreement first (includes payment-related keywords)
-    if (conversationText.includes('service') || conversationText.includes('freelance') || 
-        conversationText.includes('work') || conversationText.includes('pay') || 
-        conversationText.includes('team') || conversationText.includes('staff') ||
-        conversationText.includes('contractor') || conversationText.includes('employee') || 
-        conversationText.includes('monthly') || conversationText.includes('payment')) {
-      suggestedTemplateId = 'service'
-    } else if (conversationText.includes('loan') || conversationText.includes('borrow') || 
-               conversationText.includes('lend')) {
-      suggestedTemplateId = 'peer-loan'
-    } else if (conversationText.includes('vehicle') || conversationText.includes('car')) {
-      suggestedTemplateId = 'vehicle'
-    } else if (conversationText.includes('property') || conversationText.includes('real estate') || 
-               conversationText.includes('house')) {
-      suggestedTemplateId = 'property'
-    } else if (conversationText.includes('business') || conversationText.includes('partnership') || 
-               conversationText.includes('equity')) {
-      suggestedTemplateId = 'business'
-    }
-    
-    // Extract key information from user messages
-    const userMessages = messages.filter(m => m.role === 'user')
-    const extractedData = {
-      conversationSummary: messages.map(m => m.content).join('\n'),
-      suggestedTemplate: suggestedTemplateId,
-      userResponses: userMessages.map(m => m.content),
-      timestamp: new Date()
-    }
-    
-    onComplete(extractedData)
+    // Extract contract data from conversation
+    // This is a simplified version - in production, use proper NLP
+    onComplete(contractData)
   }
 
   return (

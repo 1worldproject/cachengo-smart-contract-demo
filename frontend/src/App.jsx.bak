@@ -115,24 +115,6 @@ function App() {
     }
   }
 
-  const handleAIComplete = (data) => {
-    setContractData(data)
-    
-    // Check for the template ID in either the new format (type) or old format (suggestedTemplate)
-    const templateId = data.type || data.suggestedTemplate
-    
-    if (templateId) {
-      const template = CONTRACT_TEMPLATES.find(t => t.id === templateId)
-      if (template) {
-        setSelectedTemplate(template)
-        setStep('form')
-        return
-      }
-    }
-    
-    // Fallback to template selection if no suggestion
-    setStep('template')
-  }
 
   const handleFileUploadComplete = (extractedData) => {
     setContractData(extractedData)

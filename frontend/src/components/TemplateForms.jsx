@@ -3,8 +3,8 @@ import { motion } from 'framer-motion'
 import { ethers } from 'ethers'
 
 // Peer-to-Peer Loan Form
-export function P2PLoanForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function P2PLoanForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     loanAmount: '',
     interestRate: '',
     durationDays: '',
@@ -138,8 +138,8 @@ export function P2PLoanForm({ onSubmit, onBack }) {
 }
 
 // Business Partnership Form
-export function BusinessPartnershipForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function BusinessPartnershipForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     businessName: '',
     partnerAName: '',
     partnerBName: '',
@@ -308,8 +308,8 @@ export function BusinessPartnershipForm({ onSubmit, onBack }) {
 }
 
 // Vehicle Sale Form
-export function VehicleSaleForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function VehicleSaleForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     vehicleMake: '',
     vehicleModel: '',
     vehicleYear: new Date().getFullYear(),
@@ -518,8 +518,8 @@ export function VehicleSaleForm({ onSubmit, onBack }) {
 }
 
 // Property Sale Form
-export function PropertySaleForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function PropertySaleForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     propertyAddress: '',
     propertyType: 'residential',
     salePrice: '',
@@ -741,8 +741,8 @@ export function PropertySaleForm({ onSubmit, onBack }) {
 }
 
 // Service Agreement Form
-export function ServiceAgreementForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function ServiceAgreementForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     serviceName: '',
     serviceDescription: '',
     providerName: '',
@@ -941,8 +941,8 @@ export function ServiceAgreementForm({ onSubmit, onBack }) {
 }
 
 // Custom Contract Form
-export function CustomContractForm({ onSubmit, onBack }) {
-  const [formData, setFormData] = useState({
+export function CustomContractForm({ onSubmit, onBack, initialData }) {
+  const [formData, setFormData] = useState(initialData?.data || {
     contractTitle: '',
     contractDescription: '',
     partyAName: '',

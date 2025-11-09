@@ -50,7 +50,7 @@ export function AIAssistant({ mode, onComplete, onBack }) {
         console.log("isFinal:", event.results[lastResultIndex].isFinal, "Length:", event.results.length)
         
         if (event.results[lastResultIndex].isFinal) {
-          setInputText(prev => prev ? prev + ' ' + transcript.trim() : transcript.trim())
+          setInputText(transcript.trim())
           console.log("Final transcript set:", transcript)
         }
       }
@@ -186,26 +186,17 @@ export function AIAssistant({ mode, onComplete, onBack }) {
     // Extract contract type from conversation
     const conversationText = messages.map(m => m.content.toLowerCase()).join(' ')
     
-    // Determine contract type based on keywords (order matters - check most specific first)
+    // Determine contract type based on keywords
     let suggestedTemplateId = 'custom'
-    
-    // Check for service agreement first (includes payment-related keywords)
-    if (conversationText.includes('service') || conversationText.includes('freelance') || 
-        conversationText.includes('work') || conversationText.includes('pay') || 
-        conversationText.includes('team') || conversationText.includes('staff') ||
-        conversationText.includes('contractor') || conversationText.includes('employee') || 
-        conversationText.includes('monthly') || conversationText.includes('payment')) {
-      suggestedTemplateId = 'service'
-    } else if (conversationText.includes('loan') || conversationText.includes('borrow') || 
-               conversationText.includes('lend')) {
+    if (conversationText.includes('loan') || conversationText.includes('borrow') || conversationText.includes('lend')) {
       suggestedTemplateId = 'peer-loan'
+    } else if (conversationText.includes('service') || conversationText.includes('freelance') || conversationText.includes('work')) {
+      suggestedTemplateId = 'service'
     } else if (conversationText.includes('vehicle') || conversationText.includes('car')) {
       suggestedTemplateId = 'vehicle'
-    } else if (conversationText.includes('property') || conversationText.includes('real estate') || 
-               conversationText.includes('house')) {
+    } else if (conversationText.includes('property') || conversationText.includes('real estate') || conversationText.includes('house')) {
       suggestedTemplateId = 'property'
-    } else if (conversationText.includes('business') || conversationText.includes('partnership') || 
-               conversationText.includes('equity')) {
+    } else if (conversationText.includes('business') || conversationText.includes('partnership') || conversationText.includes('equity')) {
       suggestedTemplateId = 'business'
     }
     
