@@ -186,14 +186,6 @@ function App() {
     setDeploymentResult(null)
   }
 
-        if (dayMatch && monthNum && yearMatch) {
-          // Handle 2-digit years (e.g., "26" → "2026")
-          let year = yearMatch[1]
-          if (year.length === 2) {
-            year = '20' + year
-          }
-          return `${year}-${monthNum}-${dayMatch[1].padStart(2, '0')}`
-        }
   const goBack = () => {
     if (step === 'path-selection') {
       setStep('landing')
