@@ -142,7 +142,7 @@ function App() {
 
   const selectTemplate = (template) => {
     setSelectedTemplate(template)
-    setStep('template')
+    setStep('form')
   }
 
   const handleFormSubmit = async (formData) => {
@@ -160,9 +160,22 @@ function App() {
     }
   }
 
-  const downloadPDF = () => {
-    console.log('Download PDF functionality would be implemented here')
-    alert('PDF download feature coming soon!')
+  const downloadPDF = async () => {
+    try {
+      const response = await fetch(`${contractData.ipfsUrl}`)
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `contract-${contractData.agreementId}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      alert('Failed to download PDF. Please try accessing via IPFS URL.')
+    }
   }
 
   const createNewContract = () => {
@@ -173,6 +186,14 @@ function App() {
     setDeploymentResult(null)
   }
 
+        if (dayMatch && monthNum && yearMatch) {
+          // Handle 2-digit years (e.g., "26" → "2026")
+          let year = yearMatch[1]
+          if (year.length === 2) {
+            year = '20' + year
+          }
+          return `${year}-${monthNum}-${dayMatch[1].padStart(2, '0')}`
+        }
   const goBack = () => {
     if (step === 'path-selection') {
       setStep('landing')
@@ -338,7 +359,7 @@ function App() {
               initialData={contractData}
               onComplete={(collectedData) => {
                 setContractData(collectedData)
-                setStep('data-collection')
+                setStep('form')
               }}
               onBack={() => setStep('ai-assistant')}
             />

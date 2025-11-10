@@ -14,7 +14,6 @@ const CONTRACT_FLOWS = {
     { field: 'providerAddress', question: 'What is the service provider\'s Ethereum address?', type: 'address' },
     { field: 'clientName', question: 'What is the client\'s name or company?', type: 'text' },
     { field: 'clientAddress', question: 'What is the client\'s Ethereum address?', type: 'address' },
-    { field: 'deliverables', question: 'What are the key deliverables? (List them, one per line)', type: 'textarea' }
   ],
   'peer-loan': [
     { field: 'loanAmount', question: 'What is the loan amount in MATIC?', type: 'number' },
@@ -185,10 +184,15 @@ export function AIAssistant({ mode, onComplete, onBack }) {
         }
         
         // Extract year
-        const yearMatch = trimmed.match(/\b(20\d{2})\b/)
+        const yearMatch = trimmed.match(/\b(20\d{2}|\d{2})\b/)
         
         if (dayMatch && monthNum && yearMatch) {
-          return `${yearMatch[1]}-${monthNum}-${dayMatch[1].padStart(2, '0')}`
+          // Handle 2-digit years (e.g., "26" → "2026")
+          let year = yearMatch[1]
+          if (year.length === 2) {
+            year = '20' + year
+          }
+          return `${year}-${monthNum}-${dayMatch[1].padStart(2, '0')}`
         }
         
         return trimmed
