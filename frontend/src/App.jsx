@@ -238,7 +238,7 @@ function App() {
                 transition={{ delay: 0.3 }}
                 className="hero-title"
               >
-                Create Legal Agreements
+                Make Your Contracts SMARTER
                 <span className="gradient-text">in Seconds</span>
               </motion.h1>
 
@@ -249,7 +249,7 @@ function App() {
                 className="hero-subtitle"
               >
                 Blockchain-powered contracts with automatic execution.
-                <br />No lawyers needed.
+                <br />Always engage subject matter experts.
               </motion.p>
 
               <motion.button
