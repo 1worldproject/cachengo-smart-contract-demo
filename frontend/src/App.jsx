@@ -6,6 +6,7 @@ import { P2PLoanForm, BusinessPartnershipForm, VehicleSaleForm, PropertySaleForm
 import { PathSelection } from './components/PathSelection'
 import { DecisionTree } from './components/DecisionTree'
 import { AIAssistant } from './components/AIAssistant'
+import { StructuredDataCollector } from './components/StructuredDataCollector'
 import { FileUpload } from './components/FileUpload'
 import { deploySmartContract } from './utils/deployment'
 import './App.css'
@@ -125,7 +126,7 @@ function App() {
       const template = CONTRACT_TEMPLATES.find(t => t.id === templateId)
       if (template) {
         setSelectedTemplate(template)
-        setStep('form')
+        setStep('data-collection')
         return
       }
     }
@@ -185,6 +186,8 @@ function App() {
       } else {
         setStep('decision-tree')
       }
+    } else if (step === 'data-collection') {
+      setStep('ai-assistant')
     } else if (step === 'form') {
       if (selectedPath === 'templates') {
         setStep('template')
@@ -319,6 +322,25 @@ function App() {
             <FileUpload 
               onComplete={handleFileUploadComplete}
               onBack={goBack}
+            />
+          </motion.div>
+        )}
+
+        {step === 'data-collection' && selectedTemplate && (
+          <motion.div
+            key="data-collection"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <StructuredDataCollector 
+              contractType={selectedTemplate.id}
+              initialData={contractData}
+              onComplete={(collectedData) => {
+                setContractData(collectedData)
+                setStep('data-collection')
+              }}
+              onBack={() => setStep('ai-assistant')}
             />
           </motion.div>
         )}

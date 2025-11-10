@@ -3,8 +3,11 @@ import { motion } from 'framer-motion'
 import { CheckCircle, AlertCircle } from 'lucide-react'
 import { ethers } from 'ethers'
 
-export function StructuredDataCollector({ contractType, onComplete }) {
-  const [formData, setFormData] = useState(getInitialData(contractType))
+export function StructuredDataCollector({ contractType, initialData, onComplete }) {
+  const [formData, setFormData] = useState(() => {
+    const defaultData = getInitialData(contractType)
+    return { ...defaultData, ...initialData }
+  })
   const [errors, setErrors] = useState({})
   
   function getInitialData(type) {
